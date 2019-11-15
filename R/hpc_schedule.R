@@ -100,6 +100,13 @@ setGeneric("genSubmit",
 
 setMethod("model0", signature(object = "slurm"), function(object)
   {
+
+    # Create Rscript for SLURM submit.
+    sink(file.path(object@path,"model0_hpc.r"))
+    cat("library(seamassdelta)")
+    cat("process_model0(commandArgs(T)[1], as.integer(commandArgs(T)[2]), as.integer(commandArgs(T)[3]))")
+    sink()
+   
     totalJobs = object$block * object$nchain - 1
     sink(file.path(object@path,"model0.slurm"))
 
@@ -144,9 +151,14 @@ setMethod("model0", signature(object = "slurm"), function(object)
 
 setMethod("model", signature(object = "slurm"), function(object)
   {
+    # Create Rscript for SLURM submit.
+    sink(file.path(object@path,"model_hpc.r"))
+    cat("library(seamassdelta)")
+    cat("process_model(commandArgs(T)[1], as.integer(commandArgs(T)[2]), as.integer(commandArgs(T)[3]))")
+    sink()
+
     totalJobs = object$block * object$nchain - 1
     sink(file.path(object@path,"model.slurm"))
-
     cat("#!/bin/bash\n\n")
 
     cat("#SBATCH --workdir=model/results\n")
@@ -179,7 +191,6 @@ setMethod("model", signature(object = "slurm"), function(object)
     cat("block=${block_val[$(( taskNumber % ${#block_val[@]} ))]}")
 
     cat("srun Rscript --vanilla ../../model_hpc.R %s $block $chain \n", object$fit)
-
     sink()
 
     #system(paste("chmod u+x",file.path(object@path,"model.slurm")))
@@ -189,8 +200,13 @@ setMethod("model", signature(object = "slurm"), function(object)
 
 setMethod("plots", signature(object = "slurm"), function(object)
   {
-    sink(file.path(object@path,"plots.slurm"))
+    # Create Rscript for SLURM submit.
+    sink(file.path(object@path,"plots_hpc.r"))
+    cat("library(seamassdelta)")
+    cat("process_plots(commandArgs(T)[1], as.integer(commandArgs(T)[2]))")
+    sink()
 
+    sink(file.path(object@path,"plots.slurm"))
     cat("#!/bin/bash\n\n")
 
     cat("#SBATCH --workdir=plots/results\n")
@@ -213,7 +229,6 @@ setMethod("plots", signature(object = "slurm"), function(object)
 
     cat(sprintf("#SBATCH --array=1-%d\n",object$block))
     cat(sprintf("srun Rscript ../../plots_hpc.R %s $SLURM_ARRAY_TASK_ID\n\n",object$fit))
-
     sink()
 
     #system(paste("chmod u+x",file.path(object@path,"plots.slurm")))
