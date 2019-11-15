@@ -42,7 +42,7 @@ seamassdelta <- function(
   fst::threads_fst(control$nthread)
 
   # check for finished output and return that
-  output <- path.expand(ofutput)
+  output <- path.expand(output)
   fit <- seamassdelta_fit(output, T)
   if (!is.null(fit)) {
     message("returning completed seamassdelta fit object - if this wasn't your intention, supply a different 'output' directory or delete it with 'seamassdelta::del'")
@@ -409,11 +409,9 @@ new_hpcschedule <- function(
     mem = '6g',
     node = 1,
     taskPerNode = 1,
-    path = '.'
+    path = '.',
     email = "UserName@email.com"
-  ),
 ) {
-
   hpcschedule <- as.list(environment())
   return(hpcschedule)
 }

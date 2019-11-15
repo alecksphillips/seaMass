@@ -5,11 +5,11 @@ require(methods)
 # Abstract Class
 setClass("ScheduleHPC",
   representation(
-    block = "numeric"
+    block = "numeric",
     nchain = "numeric",
     fit = "character",
+    path = "character",
     email = "character"
-    path = "character"
   ),
   prototype(
     block = 2,
@@ -27,7 +27,7 @@ setClass("slurm",
     node = "numeric",
     taskPerNode = "numeric",
     mem = "character",
-    que = "character",
+    que = "character"
   ),
   prototype
   (
@@ -35,7 +35,7 @@ setClass("slurm",
     node = 1,
     taskPerNode = 1,
     mem = "64000m",
-    que = "cpu",
+    que = "cpu"
   ),
   contains = "ScheduleHPC"
 )
@@ -46,7 +46,7 @@ setClass("pbs",
     node = "numeric",
     mem = "character",
     que = "character",
-    wallTime = "character",
+    wallTime = "character"
   ),
   prototype
   (
@@ -54,12 +54,12 @@ setClass("pbs",
     node = 1,
     mem = "64000m",
     que = "veryshort",
-    wallTime = "12:00:00",
+    wallTime = "12:00:00"
   ),
   contains = "ScheduleHPC"
 )
 
-setClass("SGE",
+setClass("sge",
   representation(
   ),
   contains = "ScheduleHPC"
