@@ -36,7 +36,7 @@ seamassdelta <- function(
   plots = FALSE,
   output = "seamassdelta",
   control = new_control(),
-  hpc.schedule = new_hpcschedule()
+  hpcschedule = new_hpcschedule()
 ) {
   data.table::setDTthreads(control$nthread)
   fst::threads_fst(control$nthread)
@@ -268,6 +268,7 @@ seamassdelta <- function(
     # submit to hpc directly here
 
     tmp.dir <- tempfile("bayesprot.")
+    dir.create(tmp.dir, showWarnings = FALSE)
 
     clusterHPC <- new(control$hpc, block = control$assay.nblock, nchain = control$model.nchain, fit = fit, path = tmp.dir, email = hpcschedule$email, cpuNum = hpcschedule$cpuNum, node = hpcschedule$node, taskPerNode = hpcschedule$taskPerNode, mem = hpcschedule$mem, que = hpcschedule$que)
 
@@ -276,20 +277,20 @@ seamassdelta <- function(
     # Model:
     model(clusterHPC)
     # Plots:
-    output(clusterHPC)
+    plots(clusterHPC)
+    # Submit Script
+    submit(clusterHPC)
 
     # create zip file
     wd <- getwd()
     setwd(tmp.dir)
-    zip(file.path(wd, paste0(id, ".zip")), ".", flags="-r9Xq")
+    zip(file.path(wd, paste0(control$output, "_submit.zip")), ".", flags="-r9Xq")
     setwd(wd)
 
     # clean up
     unlink(tmp.dir, recursive = T)
 
-    message(paste0("[", Sys.time(), "] HPC submission zip saved as ", file.path(wd, paste0(id, ".zip"))))
-
-    stop("not implemented yet")
+    message(paste0("[", Sys.time(), "] HPC submission zip saved as ", file.path(wd, paste0(control$output, ".zip"))))
   }
 
   write.table(data.frame(), file.path(output, "seamassdelta_fit"), col.names = F)

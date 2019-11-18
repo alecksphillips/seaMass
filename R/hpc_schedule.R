@@ -87,10 +87,10 @@ setGeneric("plots",
   }
 )
 
-setGeneric("genSubmit",
+setGeneric("submit",
   function(object)
   {
-    standardGeneric("genSubmit")
+    standardGeneric("submit")
   }
 )
 
@@ -103,11 +103,11 @@ setMethod("model0", signature(object = "slurm"), function(object)
 
     # Create Rscript for SLURM submit.
     sink(file.path(object@path,"model0_hpc.r"))
-    cat("library(seamassdelta)")
-    cat("process_model0(commandArgs(T)[1], as.integer(commandArgs(T)[2]), as.integer(commandArgs(T)[3]))")
+    cat("library(seamassdelta)\n")
+    cat("process_model0(commandArgs(T)[1], as.integer(commandArgs(T)[2]), as.integer(commandArgs(T)[3]))\n")
     sink()
    
-    totalJobs = object$block * object$nchain - 1
+    totalJobs = object@block * object@nchain - 1
     sink(file.path(object@path,"model0.slurm"))
 
     cat("#!/bin/bash\n\n")
@@ -133,15 +133,15 @@ setMethod("model0", signature(object = "slurm"), function(object)
     cat(sprintf("#SBATCH --array=0-%d\n",totalJobs))
 
     # Sweep SLURM arrayjob over two variables.
-    cat(sprintf("chain_val=($( seq 1 1 %d ))\n",object$nchain))
-    cat(sprintf("block_val=($( seq 1 1 %d ))\n\n",object$block))
+    cat(sprintf("chain_val=($( seq 1 1 %d ))\n",object@nchain))
+    cat(sprintf("block_val=($( seq 1 1 %d ))\n\n",object@block))
 
     cat("taskNumber=${SLURM_ARRAY_TASK_ID}\n")
     cat("chain=${chain_val[$(( taskNumber % ${#chain_val[@]} ))]}\n")
-    cat("taskNumber=$(( taskNumber / ${#chain_val[@]} ))")
-    cat("block=${block_val[$(( taskNumber % ${#block_val[@]} ))]}")
+    cat("taskNumber=$(( taskNumber / ${#chain_val[@]} ))\n")
+    cat("block=${block_val[$(( taskNumber % ${#block_val[@]} ))]}\n\n")
 
-    cat("srun Rscript --vanilla ../../model0_hpc.R %s $block $chain \n", object$fit)
+    cat(sprintf("srun Rscript --vanilla ../../model0_hpc.R %s $block $chain \n",object@fit))
 
     sink()
 
@@ -153,11 +153,11 @@ setMethod("model", signature(object = "slurm"), function(object)
   {
     # Create Rscript for SLURM submit.
     sink(file.path(object@path,"model_hpc.r"))
-    cat("library(seamassdelta)")
-    cat("process_model(commandArgs(T)[1], as.integer(commandArgs(T)[2]), as.integer(commandArgs(T)[3]))")
+    cat("library(seamassdelta)\n")
+    cat("process_model(commandArgs(T)[1], as.integer(commandArgs(T)[2]), as.integer(commandArgs(T)[3]))\n")
     sink()
 
-    totalJobs = object$block * object$nchain - 1
+    totalJobs = object@block * object@nchain - 1
     sink(file.path(object@path,"model.slurm"))
     cat("#!/bin/bash\n\n")
 
@@ -182,15 +182,15 @@ setMethod("model", signature(object = "slurm"), function(object)
     cat(sprintf("#SBATCH --array=0-%d\n",totalJobs))
 
     # Sweep SLURM arrayjob over two variables.
-    cat(sprintf("chain_val=($( seq 1 1 %d ))\n",object$nchain))
-    cat(sprintf("block_val=($( seq 1 1 %d ))\n\n",object$block))
+    cat(sprintf("chain_val=($( seq 1 1 %d ))\n",object@nchain))
+    cat(sprintf("block_val=($( seq 1 1 %d ))\n\n",object@block))
 
     cat("taskNumber=${SLURM_ARRAY_TASK_ID}\n")
     cat("chain=${chain_val[$(( taskNumber % ${#chain_val[@]} ))]}\n")
-    cat("taskNumber=$(( taskNumber / ${#chain_val[@]} ))")
-    cat("block=${block_val[$(( taskNumber % ${#block_val[@]} ))]}")
+    cat("taskNumber=$(( taskNumber / ${#chain_val[@]} ))\n")
+    cat("block=${block_val[$(( taskNumber % ${#block_val[@]} ))]}\n\n")
 
-    cat("srun Rscript --vanilla ../../model_hpc.R %s $block $chain \n", object$fit)
+    cat(sprintf("srun Rscript --vanilla ../../model_hpc.R %s $block $chain \n",object@fit))
     sink()
 
     #system(paste("chmod u+x",file.path(object@path,"model.slurm")))
@@ -202,8 +202,8 @@ setMethod("plots", signature(object = "slurm"), function(object)
   {
     # Create Rscript for SLURM submit.
     sink(file.path(object@path,"plots_hpc.r"))
-    cat("library(seamassdelta)")
-    cat("process_plots(commandArgs(T)[1], as.integer(commandArgs(T)[2]))")
+    cat("library(seamassdelta)\n")
+    cat("process_plots(commandArgs(T)[1], as.integer(commandArgs(T)[2]))\n")
     sink()
 
     sink(file.path(object@path,"plots.slurm"))
@@ -227,8 +227,8 @@ setMethod("plots", signature(object = "slurm"), function(object)
       cat(sprintf("#SBATCH --mail-user=%s\n\n",object@email))
     }
 
-    cat(sprintf("#SBATCH --array=1-%d\n",object$block))
-    cat(sprintf("srun Rscript ../../plots_hpc.R %s $SLURM_ARRAY_TASK_ID\n\n",object$fit))
+    cat(sprintf("#SBATCH --array=1-%d\n",object@block))
+    cat(sprintf("srun Rscript ../../plots_hpc.R %s $SLURM_ARRAY_TASK_ID\n\n",object@fit))
     sink()
 
     #system(paste("chmod u+x",file.path(object@path,"plots.slurm")))
@@ -236,7 +236,7 @@ setMethod("plots", signature(object = "slurm"), function(object)
 )
 
 
-setMethod("genSubmit", signature(object = "slurm"), function(object)
+setMethod("submit", signature(object = "slurm"), function(object)
   {
     sink(file.path(object@path,"slurm.sh"))
 
@@ -279,6 +279,12 @@ setMethod("genSubmit", signature(object = "slurm"), function(object)
 
 setMethod("model0", signature(object = "pbs"), function(object)
   {
+    # Create Rscript for SLURM submit.
+    sink(file.path(object@path,"model0_hpc.r"))
+    cat("library(seamassdelta)\n")
+    cat("process_model0(commandArgs(T)[1], as.integer(commandArgs(T)[2]), as.integer(commandArgs(T)[3]))\n")
+    sink()
+
     sink(file.path(object@path,"model0.pbs"))
     cat("#!/bin/bash\n\n")
 
@@ -312,6 +318,12 @@ setMethod("model0", signature(object = "pbs"), function(object)
 
 setMethod("model", signature(object = "pbs"), function(object)
   {
+    # Create Rscript for SLURM submit.
+    sink(file.path(object@path,"model_hpc.r"))
+    cat("library(seamassdelta)\n")
+    cat("process_model(commandArgs(T)[1], as.integer(commandArgs(T)[2]), as.integer(commandArgs(T)[3]))\n")
+    sink()
+
     sink(file.path(object@path,"model.pbs"))
     cat("#!/bin/bash\n\n")
 
@@ -346,6 +358,12 @@ setMethod("model", signature(object = "pbs"), function(object)
 
 setMethod("plots", signature(object = "pbs"), function(object)
   {
+    # Create Rscript for SLURM submit.
+    sink(file.path(object@path,"plots_hpc.r"))
+    cat("library(seamassdelta)\n")
+    cat("process_plots(commandArgs(T)[1], as.integer(commandArgs(T)[2]))\n")
+    sink()
+
     sink(file.path(object@path,"plots.pbs"))
     cat("#!/bin/bash\n\n")
 
@@ -378,7 +396,7 @@ setMethod("plots", signature(object = "pbs"), function(object)
 )
 
 
-setMethod("genSubmit", signature(object = "pbs"), function(object)
+setMethod("submit", signature(object = "pbs"), function(object)
   {
     sink(file.path(object@path,"pbs.sh"))
     cat("#!/bin/bash\n")
