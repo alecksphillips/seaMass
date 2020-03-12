@@ -52,6 +52,7 @@ sigma_model <- function(fit, dir, chain = 1) {
       DT.assay.n <- DT.assay.n[, .(nComponent = sum(nMeasurement > 0), nMeasurement = sum(nMeasurement)), by = AssayID]
       DT.component.n <- DT[, .(nMeasurement = sum(!is.na(RawCount))), by = .(AssayID, ComponentID)]
       DT.component.n <- DT.component.n[, nComponent := sum(nMeasurement > 0), by = AssayID]
+      DT.measurement.n <- DT[, .(nMeasurement = sum(!is.na(RawCount))), by = .(AssayID)]
       DT[, RawCount := NULL]
 
       # prepare DT for MCMCglmm
@@ -253,7 +254,7 @@ sigma_model <- function(fit, dir, chain = 1) {
             output$DT.assay.deviations[, value := value / log(2)]
 
             # merge with DT.n.real
-            output$DT.assay.deviations <- merge(output$DT.assay.deviations, DT.component.n[, .(AssayID, nMeasurement)], by = "AssayID")
+            output$DT.assay.deviations <- merge(output$DT.assay.deviations, DT.measurement.n[, .(AssayID, nMeasurement)], by = "AssayID")
             setcolorder(output$DT.assay.deviations, c("GroupID", "AssayID", "nMeasurement", "MeasurementID", "chainID", "mcmcID"))
             setorder(output$DT.assay.deviations, GroupID, MeasurementID, AssayID)
           } else {
