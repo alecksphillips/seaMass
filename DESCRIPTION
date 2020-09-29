@@ -24,6 +24,7 @@ Imports:
     extraDistr (>= 1.8.11),
     FactoMineR (>= 1.42),
     fitdistrplus (>= 1.0-14),
+    fs (>=1.5.0)
     fst (>= 0.9.0),
     ggdist (>= 2.2.0),
     ggfortify (>= 0.4.7),
